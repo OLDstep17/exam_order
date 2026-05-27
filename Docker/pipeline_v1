@@ -1,4 +1,4 @@
-// 🚀 Jenkinsfile - Pipeline de CI/CD para aplicación api-orders
+// 🚀 Jenkinsfile - Pipeline de CI/CD para aplicación api-orders (Configurado para H2)
 // 📦 Este pipeline automatiza el proceso de construcción, pruebas y despliegue
 
 pipeline {
@@ -9,40 +9,23 @@ pipeline {
         maven 'MAVEN_HOME'
     }
 
-    // 🔧 Definición de variables globales adaptadas a api-orders
+    // 🔧 Definición de variables globales adaptadas a api-orders con H2
     environment {
-        DOCKER_PROJECT_NAME = 'api_orders_proj_ctx'
+        DOCKER_PROJECT_NAME = 'api_orders_h2_ctx'
         APP_CONTAINER_NAME = 'api_orders_app'
-        DB_CONTAINER_NAME = 'mysql-orders-prod'
-        DB_NAME = 'api_orders_prod'
-        DB_USER = 'root'
-        DB_PASSWORD = 'admin123'
-        // Cambiar por la URL real de tu repositorio de GitHub para api-orders
+        // ✅ REPOSITORIO CONFIGURADO: Tu URL real de GitHub
         REPO_URL = 'https://github.com/OLDstep17/exam_order.git'
     }
 
     stages {
-        // 📥 Etapa 1: Clonación del repositorio y verificación
+        // 📥 Etapa 1: Clonación limpia del repositorio remoto
         stage('Clone') {
             steps {
                 timeout(time: 10, unit: 'MINUTES') {
                     echo '🔄 === INICIO: CLONACIÓN DEL REPOSITORIO ==='
                     cleanWs()
                     git branch: 'master', url: "${REPO_URL}"
-
-                    echo '📋 === VERIFICACIÓN DE ARCHIVOS SQL ==='
-                    sh 'ls -la sql/'
-                    sh '''
-                        if [ -f "sql/init.sql" ]; then
-                            echo "✅ Archivo init.sql encontrado correctamente"
-                            echo "📄 Contenido inicial del archivo:"
-                            head -n 5 sql/init.sql
-                        else
-                            echo "❌ ERROR: Archivo init.sql no encontrado"
-                            exit 1
-                        fi
-                    '''
-                    echo '✅ === FIN: CLONACIÓN Y VERIFICACIÓN COMPLETADA ==='
+                    echo '✅ === FIN: CLONACIÓN COMPLETADA ==='
                 }
             }
         }
@@ -52,7 +35,6 @@ pipeline {
             steps {
                 timeout(time: 10, unit: 'MINUTES') {
                     echo '🔨 === INICIO: CONSTRUCCIÓN DEL PROYECTO ==='
-                    // Compila y empaqueta omitiendo tests solo para acelerar la construcción del artefacto JAR
                     sh 'mvn -DskipTests clean package'
                     echo '✅ === FIN: CONSTRUCCIÓN COMPLETADA ==='
                 }
@@ -64,7 +46,6 @@ pipeline {
             steps {
                 timeout(time: 10, unit: 'MINUTES') {
                     echo '🧪 === INICIO: EJECUCIÓN DE PRUEBAS ==='
-                    // CORREGIDO: Se quita "-DskipTests" para que corran tus pruebas de Cucumber y suba la cobertura
                     sh 'mvn test'
                     echo '✅ === FIN: PRUEBAS COMPLETADAS ==='
                 }
@@ -95,7 +76,7 @@ pipeline {
             }
         }
 
-        // 🚀 Etapa 6: Despliegue de la aplicación mediante Docker Compose
+        // 🚀 Etapa 6: Despliegue de la aplicación mediante Docker Compose (Solo la App con H2)
         stage('Deploy Application') {
             steps {
                 echo '🚀 === INICIO: PROCESO DE DESPLIEGUE ==='
@@ -109,23 +90,14 @@ pipeline {
                             echo "⚠️ Advertencia: ${e.getMessage()}"
                         }
 
-                        // 🏗️ Construcción y levantamiento de servicios
-                        echo '2️⃣ Construyendo y levantando servicios en Docker...'
+                        // 🏗️ Construcción y levantamiento de la aplicación
+                        echo '2️⃣ Construyendo y levantando contenedor de la aplicación...'
                         sh "docker-compose -p ${DOCKER_PROJECT_NAME} up -d --build"
 
-                        // 💾 Inicialización de la base de datos de órdenes
-                        echo '3️⃣ Inicializando base de datos...'
-                        sleep(30) // Tiempo prudencial para que el MySQL levante su healthcheck
-                        sh "docker exec -i ${DB_CONTAINER_NAME} mysql -u${DB_USER} -p${DB_PASSWORD} ${DB_NAME} < ../sql/init.sql"
-
-                        // 🔍 Verificación de la base de datos
-                        echo '4️⃣ Verificando estructura de la base de datos...'
-                        sh "docker exec ${DB_CONTAINER_NAME} mysql -u${DB_USER} -p${DB_PASSWORD} -e 'USE ${DB_NAME}; SHOW TABLES;'"
-
                         // ⏳ Espera y verificación de la aplicación
-                        echo '5️⃣ Esperando inicio de la aplicación...'
-                        sleep(30)
-                        echo '6️⃣ Mostrando logs de la aplicación:'
+                        echo '3️⃣ Esperando inicio de la aplicación...'
+                        sleep(20)
+                        echo '4️⃣ Mostrando logs de la aplicación:'
                         sh "docker logs --tail 200 ${APP_CONTAINER_NAME}"
                     }
                 }
@@ -140,7 +112,7 @@ pipeline {
             echo '🏁 === FINALIZACIÓN DEL PIPELINE ==='
         }
         success {
-            echo '🎉 ✓ Pipeline de api-orders completado exitosamente'
+            echo '🎉 ✓ Pipeline de api-orders (H2) completado exitosamente'
         }
         failure {
             echo '💥 ✗ Pipeline falló. Revisa los logs de la etapa afectada'
