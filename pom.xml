@@ -6,7 +6,8 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>4.0.6</version>
-        <relativePath/> </parent>
+        <relativePath/>
+    </parent>
     <groupId>pe.edu.upeu</groupId>
     <artifactId>api-orders</artifactId>
     <version>0.0.1-SNAPSHOT</version>
@@ -40,6 +41,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>
