@@ -18,7 +18,7 @@ pipeline {
         DB_USER = 'root'
         DB_PASSWORD = 'admin123'
         // Cambiar por la URL real de tu repositorio de GitHub para api-orders
-        REPO_URL = 'https://github.com/TU_USUARIO/api-orders.git'
+        REPO_URL = 'https://github.com/OLDstep17/exam_order.git'
     }
 
     stages {
